@@ -8,6 +8,7 @@
 #include "lan8710a_reg.h"
 
 /* Local functions */
+#ifdef AM335X
 static void lan8710a_readv_s(message *m, int from_int);
 static void lan8710a_writev_s(message *m, int from_int);
 static void lan8710a_init(message *m);
@@ -42,12 +43,14 @@ static lan8710a_t lan8710a_state;
 static void sef_local_startup(void);
 static int sef_cb_init_fresh(int type, sef_init_info_t *info);
 static void sef_cb_signal_handler(int signal);
+#endif /* AM335X */
 
 /*===========================================================================*
- * 									main	 								 *
+ *				main					     *
  *===========================================================================*/
 int main(int argc, char *argv[])
 {
+#ifdef AM335X
 	/* Local variables */
 	message m;
 	int r;
@@ -96,10 +99,12 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+#endif /* AM335X */
+	return EXIT_SUCCESS;
 }
-
+#ifdef AM335X
 /*===========================================================================*
- * 								sef_local_startup							 *
+ * 				sef_local_startup			     *
  *===========================================================================*/
 static void sef_local_startup()
 {
@@ -120,7 +125,7 @@ static void sef_local_startup()
 }
 
 /*===========================================================================*
- * 								sef_cb_init_fresh							 *
+ * 				sef_cb_init_fresh			     *
  *===========================================================================*/
 static int sef_cb_init_fresh(int UNUSED( type), sef_init_info_t *UNUSED( info))
 {
@@ -141,7 +146,7 @@ static int sef_cb_init_fresh(int UNUSED( type), sef_init_info_t *UNUSED( info))
 }
 
 /*===========================================================================*
- * 							sef_cb_signal_handler							 *
+ * 			sef_cb_signal_handler				     *
  *===========================================================================*/
 static void sef_cb_signal_handler(int signal)
 {
@@ -153,7 +158,7 @@ static void sef_cb_signal_handler(int signal)
 }
 
 /*===========================================================================*
- * 								lan8710a_interrupt							 *
+ * 				lan8710a_interrupt			     *
  *===========================================================================*/
 static void lan8710a_interrupt(message *m)
 {
@@ -207,7 +212,7 @@ static void lan8710a_interrupt(message *m)
 }
 
 /*===========================================================================*
- * 								lan8710a_init								 *
+ * 				lan8710a_init				     *
  *===========================================================================*/
 static void lan8710a_init(m)
 message *m;
@@ -240,40 +245,40 @@ message *m;
 }
 
 /*===========================================================================*
- * 								lan8710a_init_addr							 *
+ * 				lan8710a_init_addr			     *
  *===========================================================================*/
 static void lan8710a_init_addr(void)
 {
 	static char eakey[]= LAN8710A_ENVVAR "#_EA";
-    static char eafmt[]= "x:x:x:x:x:x";
-    int i;
-    long v;
+	static char eafmt[]= "x:x:x:x:x:x";
+	int i;
+	long v;
 
-    /*
-     * Do we have a user defined ethernet address?
-     */
-    eakey[sizeof(LAN8710A_ENVVAR)-1] = '0' + lan8710a_state.instance;
+	/*
+	 * Do we have a user defined ethernet address?
+	 */
+	eakey[sizeof(LAN8710A_ENVVAR)-1] = '0' + lan8710a_state.instance;
 
-    for (i= 0; i < 6; i++)
-    {
-        if (env_parse(eakey, eafmt, i, &v, 0x00L, 0xFFL) != EP_SET)
-            break;
-        else
-    	    lan8710a_state.address.ea_addr[i]= v;
-    }
-    if(i != 6)
-    {
-    	lan8710a_state.address.ea_addr[0]= (lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF);
-		lan8710a_state.address.ea_addr[1]= ((lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF00) >> 8);
-		lan8710a_state.address.ea_addr[2]= ((lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF0000) >> 16);
-		lan8710a_state.address.ea_addr[3]= ((lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF000000) >> 24);
-		lan8710a_state.address.ea_addr[4]= (lan8710a_reg_read(CTRL_MAC_ID0_LO) & 0xFF);
-		lan8710a_state.address.ea_addr[5]= ((lan8710a_reg_read(CTRL_MAC_ID0_LO) & 0xFF00) >> 8);
-    }
+	for (i= 0; i < 6; i++)
+	{
+		if (env_parse(eakey, eafmt, i, &v, 0x00L, 0xFFL) != EP_SET)
+			break;
+		else
+			lan8710a_state.address.ea_addr[i]= v;
+	}
+	if(i != 6)
+	{
+		lan8710a_state.address.ea_addr[0] = (lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF);
+		lan8710a_state.address.ea_addr[1] = ((lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF00) >> 8);
+		lan8710a_state.address.ea_addr[2] = ((lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF0000) >> 16);
+		lan8710a_state.address.ea_addr[3] = ((lan8710a_reg_read(CTRL_MAC_ID0_HI) & 0xFF000000) >> 24);
+		lan8710a_state.address.ea_addr[4] = (lan8710a_reg_read(CTRL_MAC_ID0_LO) & 0xFF);
+		lan8710a_state.address.ea_addr[5] = ((lan8710a_reg_read(CTRL_MAC_ID0_LO) & 0xFF00) >> 8);
+	}
 }
 
 /*===========================================================================*
- * 								lan8710a_map_regs							 *
+ * 			lan8710a_map_regs				     *
  *===========================================================================*/
 static void lan8710a_map_regs(void)
 {
@@ -371,7 +376,7 @@ static void lan8710a_map_regs(void)
 }
 
 /*===========================================================================*
- * 								lan8710a_getstat							 *
+ * 			lan8710a_getstat				     *
  *===========================================================================*/
 static void lan8710a_getstat(mp)
 message *mp;
@@ -380,8 +385,8 @@ message *mp;
 	eth_stat_t stats;
 
 	stats.ets_recvErr   = lan8710a_reg_read(CPSW_STAT_RX_CRC_ERR)
-						+ lan8710a_reg_read(CPSW_STAT_RX_AGNCD_ERR)
-						+ lan8710a_reg_read(CPSW_STAT_RX_OVERSIZE);
+				+ lan8710a_reg_read(CPSW_STAT_RX_AGNCD_ERR)
+				+ lan8710a_reg_read(CPSW_STAT_RX_OVERSIZE);
 	stats.ets_sendErr   = 0;
 	stats.ets_OVW       = 0;
 	stats.ets_CRCerr    = lan8710a_reg_read(CPSW_STAT_RX_CRC_ERR);
@@ -403,12 +408,12 @@ message *mp;
 
 	if((r=send(mp->m_source, mp)) != OK)
 	{
-	    panic("lan8710a_getstat: send() failed: %d", r);
+		panic("lan8710a_getstat: send() failed: %d", r);
 	}
 }
 
 /*===========================================================================*
- * 								lan8710a_stop 								 *
+ * 			lan8710a_stop 					     *
  *===========================================================================*/
 static void lan8710a_stop(void)
 {
@@ -420,7 +425,7 @@ static void lan8710a_stop(void)
 }
 
 /*===========================================================================*
- * 								lan8710a_dma_config_tx						 *
+ * 			lan8710a_dma_config_tx				     *
  *===========================================================================*/
 static void lan8710a_dma_config_tx(desc_idx)
 u8_t desc_idx;
@@ -445,7 +450,7 @@ u8_t desc_idx;
 }
 
 /*===========================================================================*
- * 							lan8710a_dma_reset_init							 *
+ * 			lan8710a_dma_reset_init				     *
  *===========================================================================*/
 static void lan8710a_dma_reset_init(void)
 {
@@ -480,7 +485,7 @@ static void lan8710a_dma_reset_init(void)
 }
 
 /*===========================================================================*
- * 								lan8710a_init_desc							 *
+ * 			lan8710a_init_desc				     *
  *===========================================================================*/
 void lan8710a_init_desc(void)
 {
@@ -527,7 +532,7 @@ void lan8710a_init_desc(void)
 }
 
 /*===========================================================================*
- * 								lan8710a_init_hw							 *
+ * 			lan8710a_init_hw				     *
  *===========================================================================*/
 static int lan8710a_init_hw(void)
 {
@@ -654,8 +659,8 @@ static int lan8710a_init_hw(void)
 
 	/* Configure the ALE. */
 	lan8710a_reg_write(CPSW_ALE_CONTROL, (CPSW_ALE_ENABLE | CPSW_ALE_BYPASS)); /* Enable Ale */
-	                                                                           /* All packets received on ports 1 are
-																				  sent to the host (only to the host). */
+										   /* All packets received on ports 1 are
+										    * sent to the host (only to the host). */
 	lan8710a_reg_write(CPSW_ALE_PORTCTL0, CPSW_ALE_PORT_FWD); /* Port 0 (host) in forwarding mode. */
 	lan8710a_reg_write(CPSW_ALE_PORTCTL1, CPSW_ALE_PORT_FWD); /* Port 1 in forwarding mode. */
 
@@ -667,8 +672,7 @@ static int lan8710a_init_hw(void)
 	 * re-enable interrupts. Return the IRQ line number on interrupts.
 	 */
 	lan8710a_state.irq_rx_hook = 1;
-	if ((r = sys_irqsetpolicy(LAN8710A_RX_INTR, 0, &lan8710a_state.irq_rx_hook))
-			!= OK)
+	if ((r = sys_irqsetpolicy(LAN8710A_RX_INTR, 0, &lan8710a_state.irq_rx_hook)) != OK)
 	{
 		panic("sys_irqsetpolicy failed: %d", r);
 	}
@@ -677,8 +681,7 @@ static int lan8710a_init_hw(void)
 		panic("sys_irqenable failed: %d", r);
 	}
 	lan8710a_state.irq_tx_hook = 2;
-	if ((r = sys_irqsetpolicy(LAN8710A_TX_INTR, 0, &lan8710a_state.irq_tx_hook))
-			!= OK)
+	if ((r = sys_irqsetpolicy(LAN8710A_TX_INTR, 0, &lan8710a_state.irq_tx_hook)) != OK)
 	{
 		panic("sys_irqsetpolicy failed: %d", r);
 	}
@@ -711,10 +714,10 @@ static int lan8710a_init_hw(void)
 	for(i = 0; !(lan8710a_phy_read(LAN8710A_STATUS_REG) & LAN8710A_AUTO_NEG_COMPL); ++i)
 	{
 		if(i == 100)
-			{
-				LAN8710A_DEBUG_PRINT(("Autonegotiation failed"));
-				break;
-			}
+		{
+			LAN8710A_DEBUG_PRINT(("Autonegotiation failed"));
+			break;
+		}
 		tickdelay(100);
 	}
 
@@ -724,7 +727,7 @@ static int lan8710a_init_hw(void)
 }
 
 /*===========================================================================*
- * 								lan8710a_init_mdio							 *
+ * 			lan8710a_init_mdio				     *
  *===========================================================================*/
 static void lan8710a_init_mdio(void)
 {
@@ -742,7 +745,8 @@ static void lan8710a_init_mdio(void)
 	while(!(r = lan8710a_reg_read(MDIOALIVE)));
 
 	/* Get PHY address */
-	while (r >>= 1) {
+	while (r >>= 1) 
+	{
 		++address;
 	}
 	lan8710a_state.phy_address = address;
@@ -752,7 +756,7 @@ static void lan8710a_init_mdio(void)
 }
 
 /*===========================================================================*
- *								lan8710a_writev_s						     *
+ *			lan8710a_writev_s				     *
  *===========================================================================*/
 static void lan8710a_writev_s(mp, from_int)
 message *mp;
@@ -824,7 +828,7 @@ int from_int;
 		p_tx_desc->buffer_length_off = buf_data_len;
 		/* set flags */
 		p_tx_desc->pkt_len_flags = (LAN8710A_DESC_FLAG_OWN | LAN8710A_DESC_FLAG_SOP | LAN8710A_DESC_FLAG_EOP
-				           | TX_DESC_TO_PORT1 | TX_DESC_TO_PORT_EN);
+						   | TX_DESC_TO_PORT1 | TX_DESC_TO_PORT_EN);
 		p_tx_desc->pkt_len_flags |= buf_data_len;
 
 		/* setup DMA transfer */
@@ -844,7 +848,7 @@ int from_int;
 }
 
 /*===========================================================================*
- *								lan8710a_readv_s     						 *
+ *			lan8710a_readv_s	 			     *
  *===========================================================================*/
 static void lan8710a_readv_s(mp, from_int)
 message *mp;
@@ -888,7 +892,7 @@ int from_int;
 		p_rx_desc = &(e->rx_desc[e->rx_desc_idx]);
 		/* find next OWN descriptor with SOP flag */
 		while ((0 == (LAN8710A_DESC_FLAG_SOP & p_rx_desc->pkt_len_flags))
-		    && (0 == (LAN8710A_DESC_FLAG_OWN & p_rx_desc->pkt_len_flags)) )
+			&& (0 == (LAN8710A_DESC_FLAG_OWN & p_rx_desc->pkt_len_flags)) )
 		{
 			p_rx_desc->buffer_length_off = LAN8710A_IOBUF_SIZE;
 			p_rx_desc->pkt_len_flags = LAN8710A_DESC_FLAG_OWN; /* set ownership of current descriptor to EMAC*/
@@ -954,7 +958,7 @@ int from_int;
 
 			e->rx_desc_idx++;
 			if (LAN8710A_NUM_RX_DESC == e->rx_desc_idx) 
-                e->rx_desc_idx = 0;
+				e->rx_desc_idx = 0;
 				
 			p_rx_desc = &(e->rx_desc[e->rx_desc_idx]);
 		}
@@ -971,7 +975,7 @@ int from_int;
 }
 
 /*===========================================================================*
- * 								lan8710a_phy_write							 *
+ * 			lan8710a_phy_write				     *
  *===========================================================================*/
 static void lan8710a_phy_write(reg, value)
 u32_t reg;
@@ -994,7 +998,7 @@ u32_t value;
 }
 
 /*===========================================================================*
- * 								lan8710a_phy_read							 *
+ * 			lan8710a_phy_read				     *
  *===========================================================================*/
 static u32_t lan8710a_phy_read(reg)
 u32_t reg;
@@ -1022,7 +1026,7 @@ u32_t reg;
 }
 
 /*===========================================================================*
- * 								lan8710a_reset_hw 							 *
+ * 			lan8710a_reset_hw 				     *
  *===========================================================================*/
 static void lan8710a_reset_hw()
 {
@@ -1034,7 +1038,7 @@ static void lan8710a_reset_hw()
 }
 
 /*===========================================================================*
- * 								lan8710a_reg_read 							 *
+ * 			lan8710a_reg_read 				     *
  *===========================================================================*/
 static u32_t lan8710a_reg_read(reg)
 volatile u32_t *reg;
@@ -1049,7 +1053,7 @@ volatile u32_t *reg;
 }
 
 /*===========================================================================*
- * 								lan8710a_reg_write 							 *
+ * 			lan8710a_reg_write 				     *
  *===========================================================================*/
 static void lan8710a_reg_write(reg, value)
 volatile u32_t *reg;
@@ -1060,7 +1064,7 @@ u32_t value;
 }
 
 /*===========================================================================*
- * 								lan8710a_reg_set 							 *
+ * 			lan8710a_reg_set 				     *
  *===========================================================================*/
 static void lan8710a_reg_set(reg, value)
 volatile u32_t *reg;
@@ -1076,7 +1080,7 @@ u32_t value;
 }
 
 /*===========================================================================*
- * 								lan8710a_reg_unset							 *
+ * 			lan8710a_reg_unset				     *
  *===========================================================================*/
 static void lan8710a_reg_unset(reg, value)
 volatile u32_t *reg;
@@ -1092,7 +1096,7 @@ u32_t value;
 }
 
 /*===========================================================================*
- * 									mess_reply 								 *
+ * 			mess_reply 					     *
  *===========================================================================*/
 static void mess_reply(req, reply)
 message *req;message *reply;
@@ -1104,49 +1108,50 @@ message *req;message *reply;
 }
 
 /*===========================================================================*
- * 									reply	 								 *
+ * 			reply	 					     *
  *===========================================================================*/
 static void reply(e)
 lan8710a_t *e;
 {
-    message msg;
-    int r;
+	message msg;
+	int r;
 
-    /* Only reply to client for read/write request. */
-    if (!(e->status & LAN8710A_READING ||
-          e->status & LAN8710A_WRITING))
-    {
-	return;
-    }
-    /* Construct reply message. */
-    msg.m_type   = DL_TASK_REPLY;
-    msg.DL_FLAGS = DL_NOFLAGS;
-    msg.DL_COUNT = 0;
+	/* Only reply to client for read/write request. */
+	if (!(e->status & LAN8710A_READING ||
+		  e->status & LAN8710A_WRITING))
+	{
+		return;
+	}
+	/* Construct reply message. */
+	msg.m_type   = DL_TASK_REPLY;
+	msg.DL_FLAGS = DL_NOFLAGS;
+	msg.DL_COUNT = 0;
 
-    /* Did we successfully receive packet(s)? */
-    if (e->status & LAN8710A_READING &&
+	/* Did we successfully receive packet(s)? */
+	if (e->status & LAN8710A_READING &&
 	e->status & LAN8710A_RECEIVED)
-    {
-	msg.DL_FLAGS |= DL_PACK_RECV;
-	msg.DL_COUNT = e->rx_size >= ETH_MIN_PACK_SIZE ?
-		       e->rx_size  : ETH_MIN_PACK_SIZE;
+	{
+		msg.DL_FLAGS |= DL_PACK_RECV;
+		msg.DL_COUNT = e->rx_size >= ETH_MIN_PACK_SIZE ?
+			   e->rx_size  : ETH_MIN_PACK_SIZE;
 
-        /* Clear flags. */
-	e->status &= ~(LAN8710A_READING | LAN8710A_RECEIVED);
-    }
-    /* Did we successfully transmit packet(s)? */
-    if (e->status & LAN8710A_TRANSMIT &&
-        e->status & LAN8710A_WRITING)
-    {
-	msg.DL_FLAGS |= DL_PACK_SEND;
+		/* Clear flags. */
+		e->status &= ~(LAN8710A_READING | LAN8710A_RECEIVED);
+	}
+	/* Did we successfully transmit packet(s)? */
+	if (e->status & LAN8710A_TRANSMIT &&
+		e->status & LAN8710A_WRITING)
+	{
+		msg.DL_FLAGS |= DL_PACK_SEND;
 
-	/* Clear flags. */
-	e->status &= ~(LAN8710A_WRITING | LAN8710A_TRANSMIT);
-    }
+		/* Clear flags. */
+		e->status &= ~(LAN8710A_WRITING | LAN8710A_TRANSMIT);
+	}
 
-    /* Acknowledge to INET. */
-    if ((r = send(e->client, &msg) != OK))
-    {
-        panic("send() failed: %d", r);
-    }
+	/* Acknowledge to INET. */
+	if ((r = send(e->client, &msg) != OK))
+	{
+		panic("send() failed: %d", r);
+	}
 }
+#endif /* AM335X */
