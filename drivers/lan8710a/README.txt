@@ -8,12 +8,11 @@ created July 2013, JPEmbedded (info@jpembedded.eu)
 --------------------------------------------------------------------------------
 *                           INSTALLATION:                                      *
 --------------------------------------------------------------------------------
-To install LAN8710A for BeagleBone under MINIX you have to edit /etc/system.conf
-by adding there content of lan8710a.conf file.
-Next step is to edit /etc/inet.conf by adding line:
+To install LAN8710A for BeagleBone under MINIX you have to edit /etc/inet.conf
+by adding line:
 eth0 lan8710a 0 { default; };
 and changing:
-psip0;
+psip0 { default; };
 to:
 psip1;
 Restart the system and the driver should work.
