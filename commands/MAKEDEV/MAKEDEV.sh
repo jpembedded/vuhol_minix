@@ -23,7 +23,14 @@ case $#:$1 in
 	ttypa ttypb ttypc ttypd ttype ttypf \
 	ttyq0 ttyq1 ttyq2 ttyq3 ttyq4 ttyq5 ttyq6 ttyq7 ttyq8 ttyq9 \
 	ttyqa ttyqb ttyqc ttyqd ttyqe ttyqf \
-	eth klog random uds filter fbd hello fb0
+	eth klog random uds filter fbd hello fb0 \
+	i2c-1 i2c-2 i2c-3 \
+	eepromb1s50 eepromb1s51 eepromb1s52 eepromb1s53 \
+	eepromb1s54 eepromb1s55 eepromb1s56 eepromb1s57 \
+	eepromb2s50 eepromb2s51 eepromb2s52 eepromb2s53 \
+	eepromb2s54 eepromb2s55 eepromb2s56 eepromb2s57 \
+	eepromb3s50 eepromb3s51 eepromb3s52 eepromb3s53 \
+	eepromb3s54 eepromb3s55 eepromb3s56 eepromb3s57
     ;;
 0:|1:-\?)
     cat >&2 <<EOF
@@ -31,6 +38,7 @@ Usage:	$0 [-n] key ...
 Where key is one of the following:
   ram mem kmem null boot zero	  # One of these makes all these memory devices
   fb0			  # Make /dev/fb0
+  i2c-1 i2c-2 i2c-3       # Make /dev/i2c-[1-3]
   fd0 fd1 ...		  # Floppy devices for drive 0, 1, ...
   fd0p0 fd1p0 ...	  # Make floppy partitions fd0p[0-3], fd1p[0-3], ...
   c0d0 c0d1 ...		  # Make disks c0d0, c0d1, ...
@@ -283,6 +291,21 @@ do
 	# framebuffer driver
 	$e mknod fb0 c 19 0
 	$e chmod 644 fb0
+	;;
+    i2c-[1-3])
+	# i2c driver
+	b=`expr $dev : '....\\(.*\\)'` # bus number
+	m=`expr $dev : '....\\(.*\\)' - 1` # least significant digit of major
+	$e mknod i2c-${b} c 2${m} 0
+	$e chmod 600 i2c-${b}
+	;;
+    eepromb[1-3]s5[0-7])
+	# cat24c256 driver
+	b=`expr $dev : 'eepromb\\(.*\\)s'` # bus number
+	s=`expr $dev : 'eepromb.s5\\(.*\\)'` # configurable part of slave addr
+	m=`expr ${b} \* 8 + ${s} + 17`
+	$e mknod eepromb${b}s5${s} b ${m} 0
+	$e chmod 600 eepromb${b}s5${s}
 	;;
     *)
 	echo "$0: don't know about $dev" >&2

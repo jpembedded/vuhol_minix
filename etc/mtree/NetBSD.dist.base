@@ -9,6 +9,7 @@
 # LSC This file has been adapted for MINIX
 #
 
+# Standard directories
 /set type=dir uid=0 gid=0 mode=0755
 .
 ./bin
@@ -50,6 +51,7 @@
 ./usr/include/ddekit/minix
 ./usr/include/g++
 ./usr/include/i386
+./usr/include/lutok
 ./usr/include/lzma
 ./usr/include/minix
 ./usr/include/net
@@ -74,6 +76,7 @@
 ./usr/lib/flex
 ./usr/lib/fonts
 ./usr/lib/keymaps
+./usr/lib/pkgconfig
 ./usr/libexec
 ./usr/log
 ./usr/man
@@ -100,6 +103,7 @@
 ./usr/share/doc/html/bzip2
 ./usr/share/doc/psd
 ./usr/share/doc/psd/19.curses
+./usr/share/info
 ./usr/share/misc
 ./usr/share/mk
 ./usr/share/terminfo

@@ -141,7 +141,7 @@ _SUBDIR=	tools lib .WAIT include gnu external crypto/external bin games
 _SUBDIR+=	libexec sbin usr.bin
 _SUBDIR+=	commands man
 _SUBDIR+=	common drivers kernel servers
-_SUBDIR+=	usr.sbin share rescue sys etc test compat .WAIT distrib regress
+_SUBDIR+=	usr.sbin share rescue sys etc test tests compat .WAIT distrib regress
 
 .if defined(__MINIX)
 _SUBDIR+=	benchmarks
@@ -172,11 +172,9 @@ afterinstall: .PHONY .MAKE
 	${MAKEDIRTARGET} man makedb
 .endif # !defined(__MINIX)
 .endif
-.if !defined(__MINIX)
 .if (${MKUNPRIVED} != "no" && ${MKINFO} != "no")
 	${MAKEDIRTARGET} gnu/usr.bin/texinfo/install-info infodir-meta
 .endif
-.endif # !defined(__MINIX)
 .if !defined(NOPOSTINSTALL)
 	${MAKEDIRTARGET} . postinstall-check
 .endif
@@ -317,7 +315,7 @@ distribution buildworld: .PHONY .MAKE
 .endif
 	${MAKEDIRTARGET} . build NOPOSTINSTALL=1
 	${MAKEDIRTARGET} etc distribution INSTALL_DONE=1
-.if defined(DESTDIR) && ${DESTDIR} != "" && ${DESTDIR} != "/"  && ${CHECKFLIST:Uyes} == "yes"
+.if defined(DESTDIR) && ${DESTDIR} != "" && ${DESTDIR} != "/"
 	${MAKEDIRTARGET} . postinstall-fix-obsolete
 	${MAKEDIRTARGET} distrib/sets checkflist
 .endif

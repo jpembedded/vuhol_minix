@@ -26,7 +26,6 @@ COPTS.test68.c=	-O0
 
 # Some have special libraries
 LDADD.test59=	-lmthread
-LDFLAGS.mod=	-shared		# make shared object
 
 # Some have an extra file
 OBJS.test57=	test57loop.o
@@ -39,7 +38,7 @@ LDADD.test72+=	-lminixfs
 
 PROGS += testvm
 OBJS.testvm+=	testcache.o
-LDFLAGS.testvm+= -static
+LDSTATIC.testvm= -static
 LDADD.testvm+=	-lsys -ltimers -lminlib
 
 FILES += testvm.conf
@@ -49,7 +48,7 @@ MINIX_TESTS= \
  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 \
 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 \
 41 42 43 44 45 46    48 49 50    52 53 54 55 56    58 59 60 \
-61       64 65 66 67 68 69 70 71 72 73 74
+61       64 65 66 67 68 69 70 71 72 73 74 75
 
 .if ${MACHINE_ARCH} == "i386"
 MINIX_TESTS+= \
@@ -80,7 +79,18 @@ LDSTATIC=	-dynamic
 
 # use the shared linkerscript for mod when using the gold linker
 GOLDLINKERSCRIPT.mod?= ${${HAVE_GOLD:Uno} != "no":? ${LDS_SHARED_LIB} :}
+LDFLAGS.mod+=	-shared		# make shared object
+
+# LSC FIXME: THe bitcode rules need to take into account LDFLAGS
 LDADD.mod+= ${${USE_BITCODE:Uno} != "no":? -shared:}
+
+# Files which have to be compiled with -fPIC
+mod.o: mod.c
+	${COMPILE.c} -fPIC ${.IMPSRC}
+
+common.o: common.c
+	${COMPILE.c} -fPIC ${.IMPSRC}
+
 # test57loop.S is not linked into the .bcl file.
 # This way, we can link it in when linking the final binary
 LDADD.test57+= ${${USE_BITCODE:Uno} != "no":? test57loop.o -Wl,-allow-multiple-definition:}
@@ -88,7 +98,7 @@ LDADD.test57+= ${${USE_BITCODE:Uno} != "no":? test57loop.o -Wl,-allow-multiple-d
 # Add test that must be linked dynamically, and its dynamically loaded
 # module
 PROGS+=		test63 mod
-.endif
+.endif # ${MKPIC} == "yes"
 
 .for o in $(PROGS)
 OBJS.${o} += common.o

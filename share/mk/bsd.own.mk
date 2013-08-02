@@ -13,6 +13,7 @@ _BSD_OWN_MK_=1
 # Some Minix deviations from NetBSD
 LDSTATIC?=	-static
 MKDYNAMICROOT?=	no
+NO_LIBGOMP?=	yes
 
 BINMODE?=	755
 NONBINMODE?=	644
@@ -22,9 +23,11 @@ MANGRP?=	operator
 INFOGRP?=	operator
 DOCGRP?=	operator
 
-MKBINUTILS:=	no
+MKBINUTILS?=	no
 MKGDB:=		no
 MKGCC?=		no
+MKGCCCMDS?=	no
+MKSLJIT?=	no
 
 # LSC MINIX SMP Support?
 .ifdef CONFIG_SMP
@@ -81,6 +84,29 @@ LDS_DYNAMIC_BIN=	${LDS_PATH}/elf_${MACHINE_ARCH}_minix.xc
 LDS_RELOC=		${LDS_PATH}/elf_${MACHINE_ARCH}_minix.xr
 LDS_SHARED_LIB=		${LDS_PATH}/elf_${MACHINE_ARCH}_minix.xsc
 LDS_N=			${LDS_PATH}/elf_${MACHINE_ARCH}_minix.xbn
+
+# LSC In the current state there is too much to be done
+# Some package have been identified by directly adding NOGCCERROR
+# To their Makefiles
+NOGCCERROR?=	yes
+NOCLANGERROR?=	yes
+
+AFLAGS+=	-D__ASSEMBLY__
+CFLAGS+=	-fno-builtin
+
+# Compile Kyua only if we have MKGCCCMDS, as we need libstdc++ from GCC
+.if ${MKGCCCMDS:Uno} == "no"
+MKATF:=		no
+.else
+# For C++ programs, only if we have the GCC sources
+CXXFLAGS+=	-I${DESTDIR}/usr/include/g++
+MKKYUA?=	yes
+.endif #  ${MKGCCCMDS:Uno} == "no"
+
+#LSC FIXME: Needed by clang for now
+.if ${MACHINE_ARCH} == "i386"
+CPUFLAGS+=	-march=i586
+.endif
 .endif # defined(__MINIX)
 
 MAKECONF?=	/etc/mk.conf
@@ -152,6 +178,19 @@ HAVE_GDB?= 6
 .else
 # Otherwise, default to GDB7
 HAVE_GDB?=	7
+.endif
+
+.if (${MACHINE_ARCH} == "alpha") || \
+    (${MACHINE_ARCH} == "hppa") || \
+    (${MACHINE_ARCH} == "ia64") || \
+    (${MACHINE_ARCH} == "mipsel") || (${MACHINE_ARCH} == "mipseb") || \
+    (${MACHINE_ARCH} == "mips64el") || (${MACHINE_ARCH} == "mips64eb")
+HAVE_SSP?=	no
+.else
+HAVE_SSP?=	yes
+.if ${USE_FORT:Uno} != "no"
+USE_SSP?=	yes
+.endif
 .endif
 
 
@@ -878,6 +917,14 @@ MKSOFTFLOAT?=	yes
 SOFTFLOAT_BITS=	32
 .endif
 
+.if ${MACHINE_ARCH} == "i386" || \
+    ${MACHINE_ARCH} == "x86_64" || \
+    ${MACHINE_ARCH} == "sparc" 
+MKSLJIT?=	yes
+.else
+MKSLJIT?=	no
+.endif
+
 #
 # MK* backward compatibility.
 #
@@ -906,7 +953,6 @@ MKNLS:=		no
 MKHESIOD:=	no
 MKPOSTFIX:=	no
 MKKMOD:=	no
-MKATF:=	 	no
 MKEXTSRC:=	no
 MKRUMP:=	no
 MKSKEY:=	no
@@ -977,6 +1023,7 @@ _MKVARS.no= \
 	MKBSDGREP MKBSDTAR \
 	MKCATPAGES MKCRYPTO_RC5 MKDEBUG \
 	MKDEBUGLIB MKDTRACE MKEXTSRC \
+	MKKYUA \
 	MKMANZ MKOBJDIRS \
 	MKLLVM MKPCC \
 	MKPIGZGZIP \
@@ -1021,6 +1068,7 @@ X11FLAVOUR?=	Xorg
 .if ${MKCXX} == "no"
 MKATF:=		no
 MKGROFF:=	no
+MKKYUA:=	no
 .endif
 
 .if ${MKCRYPTO} == "no"
