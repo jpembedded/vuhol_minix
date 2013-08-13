@@ -796,6 +796,9 @@ lan8710a_init_hw(void)
 
 	/* GMII RX and TX release from reset. */
 	lan8710a_reg_set(CPSW_SL_MACCONTROL(1), CPSW_SL_GMII_EN);
+	
+	/* Enable interrupts. */
+	lan8710a_enable_interrupt(RX_INT | TX_INT);
 
 	return TRUE;
 }
